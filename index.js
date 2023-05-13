@@ -39,11 +39,49 @@ async function run() {
 
 const servicesCollection=
 client.db('car-extra-data').collection('services');
-const  bookingcollection=client.db('booking-data').collection('bookings')
+const  bookingcollection=client.db('car-extra-data').collection('bookings')
 // bookings
 app.post('/bookings',async(req,res)=>{
   const booking=req.body;
+  console.log(booking);
+  const result=await bookingcollection.insertOne(booking);
+  res.send(result);
+})
+
+app.get('/bookings',async(req,res)=>{
+  console.log(req.query.email);
+  let query={};
+  if (req.query?.email) {
+    query={email:req.query.email}
+  }
+  const result=await bookingcollection.find(query).toArray();
+  res.send(result)
+})
+
+
+app.patch('/bookings/:id',async(req,res)=>{
+  const updateBooking=req.body;
+  const id=req.params.id;
+  const filter={_id: new ObjectId(id)};
   
+   // create a document that sets the plot of the movie
+   const updateDoc = {
+    $set: {
+    status: updateBooking.status
+    },
+  };
+  const result=await bookingcollection.updateOne(filter,updateDoc);
+  res.send(result)
+  console.log(updateBooking);
+
+})
+
+
+app.delete('/bookings/:id',async(req,res)=>{
+  const id=req.params.id;
+  const query={_id: new ObjectId(id)};
+  const result=await bookingcollection.deleteOne(query);
+  res.send(result);
 })
 
 app.get('/services',async(req,res)=>{
@@ -51,20 +89,16 @@ const cursor=servicesCollection.find();
 const result=await cursor.toArray();
 res.send(result);
 
-
-
+})
 app.get('/services/:id',async(req,res)=>{
   const id=req.params.id;
   const query={_id: new ObjectId(id)};
   const options = {
     
-    projection: {  title: 1,price:1, service_id:1},
+    projection: {  title: 1,price:1, service_id:1,img:1},
   };
  const result=await servicesCollection.findOne(query,options);
  res.send(result)
-})
-
-
 })
 
     // Send a ping to confirm a successful connection
